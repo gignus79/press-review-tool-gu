@@ -17,7 +17,7 @@
     "isolatedModules": true,
     "moduleDetection": "force",
     "noEmit": true,
-    "jsx": "react-jsx",
+    "jsx": "preserve",
     /* Linting */
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
@@ -34,7 +34,9 @@
       {
         "name": "next"
       }
-    ]
+    ],
+    "allowJs": true,
+    "strict": false
   },
   "include": [
     "src",
@@ -43,5 +45,7 @@
     "next-env.d.ts",
     ".next/types/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules"
+  ]
 }
