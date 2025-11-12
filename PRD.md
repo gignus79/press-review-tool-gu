@@ -12,6 +12,27 @@ A web application for automated analysis of music press reviews using AI-powered
 
 ## Essential Features
 
+### User Authentication
+- **Functionality**: Simple email-based login to access the application with persistent session management
+- **Purpose**: Secure access control and personalized user experience with data persistence
+- **Trigger**: Application launch or when user is not authenticated
+- **Progression**: Enter email → Validate format → Store session → Access dashboard
+- **Success criteria**: Email validation works correctly, session persists across page refreshes, clear visual feedback
+
+### Theme Toggle (Dark/Light Mode)
+- **Functionality**: User-controlled theme switching between light and dark modes with persistent preference
+- **Purpose**: Accommodate user preferences and different viewing environments for optimal readability
+- **Trigger**: Click theme toggle button in header
+- **Progression**: Click toggle → Theme switches instantly → Preference saved → Persists across sessions
+- **Success criteria**: Smooth transition without flicker, preference persists, all components adapt properly
+
+### Quick Date Range Filters
+- **Functionality**: One-click preset date range filters (1 month, 3 months, 1 year, all time) for rapid search configuration
+- **Purpose**: Streamline the search workflow by providing common date range shortcuts
+- **Trigger**: Selecting date range in search dialog
+- **Progression**: Click preset button → Date range auto-fills → Custom dates can still override
+- **Success criteria**: Presets calculate correct date ranges, visual feedback on selection, integrates with custom date inputs
+
 ### Search Configuration
 - **Functionality**: Configure multi-query search parameters including artist/topic, date ranges, source filters, and content type preferences
 - **Purpose**: Enable precise targeting of relevant press coverage across diverse music journalism sources
@@ -81,15 +102,15 @@ Triadic color scheme - three equally spaced colors creating dynamic yet balanced
 
 ## Font Selection
 
-Typefaces should balance technical precision with contemporary readability - suggesting analytical capability without coldness. Using Inter for its exceptional legibility in data-heavy UIs and JetBrains Mono for technical elements.
+Typefaces should balance technical precision with contemporary readability - suggesting analytical capability without coldness. Using Plus Jakarta Sans for its modern, geometric design with excellent readability across devices and JetBrains Mono for technical elements.
 
 - **Typographic Hierarchy**:
-  - H1 (Page Title): Inter Bold/32px/tight letter spacing (-0.02em)
-  - H2 (Section Header): Inter Semibold/24px/tight letter spacing (-0.01em)
-  - H3 (Card Title): Inter Semibold/18px/normal letter spacing
-  - Body (Primary Text): Inter Regular/15px/relaxed line height (1.6)
-  - Body Small (Meta Info): Inter Regular/13px/relaxed line height (1.5)
-  - Caption (Timestamps, Labels): Inter Medium/11px/wide letter spacing (0.03em)/uppercase
+  - H1 (Page Title): Plus Jakarta Sans Bold/32px/tight letter spacing (-0.02em)
+  - H2 (Section Header): Plus Jakarta Sans Semibold/24px/tight letter spacing (-0.01em)
+  - H3 (Card Title): Plus Jakarta Sans Semibold/18px/normal letter spacing
+  - Body (Primary Text): Plus Jakarta Sans Regular/15px/relaxed line height (1.6)
+  - Body Small (Meta Info): Plus Jakarta Sans Regular/13px/relaxed line height (1.5)
+  - Caption (Timestamps, Labels): Plus Jakarta Sans Medium/11px/wide letter spacing (0.03em)/uppercase
   - Code/Data (IDs, JSON): JetBrains Mono Regular/14px/normal letter spacing
 
 ## Animations
@@ -131,8 +152,9 @@ Animations should feel responsive and data-driven - quick, precise movements tha
   - Cards: Rest → Hover (elevation increase, border highlight) → Selected (indigo border, background tint)
 
 - **Icon Selection**:
+  - Newspaper (press office/main app icon)
   - MagnifyingGlass (search actions)
-  - SparklesFilled (AI analysis indicator)
+  - Sparkle (AI analysis indicator)
   - FunnelSimple (filter controls)
   - DownloadSimple (export actions)
   - ClockCounterClockwise (history access)
@@ -140,9 +162,11 @@ Animations should feel responsive and data-driven - quick, precise movements tha
   - FilePdf, FileXls, FileCode (export formats)
   - CheckCircle (success states)
   - WarningCircle (rate limiting)
+  - Moon/Sun (theme toggle)
+  - SignOut (logout action)
+  - CalendarBlank (date filters)
   - X (close, remove)
   - CaretDown, CaretUp (sorting)
-  - Rows (table view)
   - Copy (duplicate detection)
 
 - **Spacing**: 
@@ -152,9 +176,14 @@ Animations should feel responsive and data-driven - quick, precise movements tha
   - Inline elements: gap-1.5 for badge clusters, gap-3 for toolbar items
 
 - **Mobile**:
+  - Dialog becomes full-screen on mobile with scrollable content
   - Table transforms to stacked cards below 768px
-  - Search dialog becomes full-screen sheet on mobile
-  - Toolbar actions collapse to dropdown menu
-  - Results show 10 items per page on mobile vs 50 on desktop
-  - Filters move to bottom sheet drawer
-  - Two-column grid becomes single column below 640px
+  - Search dialog optimized for mobile with larger touch targets
+  - Toolbar actions stack vertically on small screens with responsive text sizing
+  - Results show with adjusted padding and font sizes on mobile
+  - Filters presented with simplified layout on small screens
+  - Header navigation collapses with icon-only buttons below 640px
+  - Two-column metric grid becomes responsive at 640px breakpoint
+  - Touch-optimized button sizes (minimum 44x44px) throughout
+  - Bottom sheet drawer for auxiliary actions on mobile
+  - Cross-browser tested for Safari, Chrome, iOS Safari, and Chrome Mobile

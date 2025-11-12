@@ -10,9 +10,9 @@ interface MetricDisplayProps {
 
 export function MetricDisplay({ label, value, icon, trend }: MetricDisplayProps) {
   return (
-    <Card className="p-6">
-      <div className="flex items-start justify-between mb-4">
-        <div className="p-3 rounded-lg bg-primary/10 text-primary">
+    <Card className="p-4 sm:p-6">
+      <div className="flex items-start justify-between mb-3 sm:mb-4">
+        <div className="p-2 sm:p-3 rounded-lg bg-primary/10 text-primary">
           {icon}
         </div>
       </div>
@@ -22,10 +22,10 @@ export function MetricDisplay({ label, value, icon, trend }: MetricDisplayProps)
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
-        <div className="text-3xl font-bold tracking-tight mb-1">
+        <div className="text-2xl sm:text-3xl font-bold tracking-tight mb-1">
           {value}
         </div>
-        <div className="text-sm text-muted-foreground uppercase tracking-wide font-medium">
+        <div className="text-xs sm:text-sm text-muted-foreground uppercase tracking-wide font-medium">
           {label}
         </div>
       </motion.div>

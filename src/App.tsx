@@ -10,24 +10,32 @@ import { Separator } from '@/components/ui/separator'
 import { toast } from 'sonner'
 import { 
   MagnifyingGlass, 
-  Sparkle, 
+  Newspaper,
   ChartBar,
   ClockCounterClockwise,
   Article,
   CheckCircle,
-  WarningCircle
+  WarningCircle,
+  Moon,
+  Sun,
+  SignOut,
+  Sparkle
 } from '@phosphor-icons/react'
 
+import { LoginPage } from '@/components/LoginPage'
 import { SearchDialog } from '@/components/SearchDialog'
 import { ResultCard } from '@/components/ResultCard'
 import { MetricDisplay } from '@/components/MetricDisplay'
 import { SearchToolbar } from '@/components/SearchToolbar'
 import { EmptyState } from '@/components/EmptyState'
+import { useTheme } from '@/hooks/use-theme'
 
 import { performSearch, analyzeResult } from '@/lib/mock-data'
 import type { SearchConfig, SearchResult, SearchHistory, Sentiment, ContentType, ExportFormat } from '@/lib/types'
 
 function App() {
+  const [userEmail, setUserEmail] = useKV<string | null>('user-email', null)
+  const { theme, toggleTheme } = useTheme()
   const [searchDialogOpen, setSearchDialogOpen] = useState(false)
   const [currentResults, setCurrentResults] = useState<SearchResult[]>([])
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -38,6 +46,10 @@ function App() {
   
   const [sentimentFilter, setSentimentFilter] = useState<Sentiment | 'all'>('all')
   const [contentTypeFilter, setContentTypeFilter] = useState<ContentType | 'all'>('all')
+
+  if (!userEmail) {
+    return <LoginPage onLogin={setUserEmail} />
+  }
 
   const filteredResults = currentResults.filter(result => {
     if (sentimentFilter !== 'all' && result.analysis?.sentiment !== sentimentFilter) {
@@ -197,28 +209,50 @@ function App() {
       )
     : 0
 
+  const handleLogout = () => {
+    if (confirm('Are you sure you want to log out?')) {
+      setUserEmail(null)
+      setCurrentResults([])
+      setSelectedIds(new Set())
+      setSearchHistory([])
+    }
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Toaster position="top-right" />
-      <header className="sticky top-0 z-50 bg-card border-b border-border shadow-sm">
-        <div className="container mx-auto px-4 sm:px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary text-primary-foreground">
-                <Sparkle size={24} weight="fill" />
+      <header className="sticky top-0 z-50 bg-card border-b border-border shadow-sm backdrop-blur-sm bg-card/95">
+        <div className="container mx-auto px-4 sm:px-6 py-3 sm:py-4">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <div className="p-1.5 sm:p-2 rounded-lg bg-primary text-primary-foreground flex-shrink-0">
+                <Newspaper size={20} className="sm:w-6 sm:h-6" weight="fill" />
               </div>
-              <div>
-                <h1 className="text-2xl font-bold tracking-tight">Press Review Tool</h1>
-                <p className="text-sm text-muted-foreground">AI-Powered Music Press Analysis</p>
+              <div className="min-w-0">
+                <h1 className="text-lg sm:text-2xl font-bold tracking-tight truncate">Press Review</h1>
+                <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">AI-Powered Music Press Analysis</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full"
+                onClick={toggleTheme}
+              >
+                {theme === 'light' ? (
+                  <Moon size={18} className="sm:w-5 sm:h-5" weight="fill" />
+                ) : (
+                  <Sun size={18} className="sm:w-5 sm:h-5" weight="fill" />
+                )}
+              </Button>
+
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button variant="outline" className="gap-2">
-                    <ClockCounterClockwise size={18} />
-                    <span className="hidden sm:inline">History</span>
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <ClockCounterClockwise size={16} className="sm:w-[18px] sm:h-[18px]" />
+                    <span className="hidden md:inline">History</span>
                   </Button>
                 </SheetTrigger>
                 <SheetContent className="w-full sm:max-w-md">
@@ -229,7 +263,7 @@ function App() {
                     </SheetDescription>
                   </SheetHeader>
                   
-                  <ScrollArea className="h-[calc(100vh-120px)] mt-6">
+                  <ScrollArea className="h-[calc(100vh-180px)] mt-6">
                     {!searchHistory || searchHistory.length === 0 ? (
                       <div className="text-center py-12 text-muted-foreground">
                         <ClockCounterClockwise size={48} className="mx-auto mb-3 opacity-50" />
@@ -243,7 +277,7 @@ function App() {
                             className="p-4 border border-border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
                             onClick={() => loadHistorySearch(history)}
                           >
-                            <div className="font-medium mb-1">{history.config.query}</div>
+                            <div className="font-medium mb-1 line-clamp-2">{history.config.query}</div>
                             <div className="text-sm text-muted-foreground">
                               {new Date(history.timestamp).toLocaleDateString()} • {history.resultCount} results
                             </div>
@@ -259,64 +293,75 @@ function App() {
                       </div>
                     )}
                   </ScrollArea>
+
+                  <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-border bg-card">
+                    <Button
+                      variant="outline"
+                      className="w-full gap-2"
+                      onClick={handleLogout}
+                    >
+                      <SignOut size={18} />
+                      Sign Out
+                    </Button>
+                  </div>
                 </SheetContent>
               </Sheet>
 
-              <Button onClick={() => setSearchDialogOpen(true)} className="gap-2">
-                <MagnifyingGlass size={18} weight="bold" />
-                New Search
+              <Button onClick={() => setSearchDialogOpen(true)} size="sm" className="gap-2">
+                <MagnifyingGlass size={16} className="sm:w-[18px] sm:h-[18px]" weight="bold" />
+                <span className="hidden sm:inline">New Search</span>
               </Button>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 sm:px-6 py-8">
+      <main className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-7xl">
         {currentResults.length === 0 && !isSearching ? (
           <EmptyState onNewSearch={() => setSearchDialogOpen(true)} />
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {isSearching ? (
-              <div className="text-center py-12">
+              <div className="text-center py-12 sm:py-16">
                 <div className="inline-flex items-center gap-3 mb-4">
-                  <MagnifyingGlass size={32} className="animate-pulse text-primary" weight="duotone" />
-                  <span className="text-lg font-medium">Searching...</span>
+                  <MagnifyingGlass size={28} className="sm:w-8 sm:h-8 animate-pulse text-primary" weight="duotone" />
+                  <span className="text-base sm:text-lg font-medium">Searching...</span>
                 </div>
                 <Progress value={33} className="max-w-md mx-auto" />
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                   <MetricDisplay
                     label="Total Results"
                     value={currentResults.length}
-                    icon={<Article size={24} weight="duotone" />}
+                    icon={<Article size={20} className="sm:w-6 sm:h-6" weight="duotone" />}
                   />
                   <MetricDisplay
                     label="Analyzed"
                     value={analyzedCount}
-                    icon={<Sparkle size={24} weight="fill" />}
+                    icon={<Sparkle size={20} className="sm:w-6 sm:h-6" weight="fill" />}
                   />
                   <MetricDisplay
                     label="Positive"
                     value={positiveCount}
-                    icon={<CheckCircle size={24} weight="fill" />}
+                    icon={<CheckCircle size={20} className="sm:w-6 sm:h-6" weight="fill" />}
                   />
                   <MetricDisplay
                     label="Avg Relevance"
                     value={`${avgRelevance}%`}
-                    icon={<ChartBar size={24} weight="duotone" />}
+                    icon={<ChartBar size={20} className="sm:w-6 sm:h-6" weight="duotone" />}
                   />
                 </div>
 
                 {analyzingProgress > 0 && analyzingProgress < 100 && (
-                  <div className="bg-card border border-border rounded-lg p-4">
+                  <div className="bg-card border border-border rounded-lg p-3 sm:p-4">
                     <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2 text-sm font-medium">
-                        <Sparkle size={16} className="text-secondary animate-pulse" weight="fill" />
+                      <div className="flex items-center gap-2 text-xs sm:text-sm font-medium">
+                        <Sparkle size={14} className="sm:w-4 sm:h-4 text-secondary animate-pulse" weight="fill" />
                         AI Analysis in Progress
                       </div>
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-xs sm:text-sm text-muted-foreground">
                         {Math.round(analyzingProgress)}%
                       </span>
                     </div>
@@ -337,12 +382,12 @@ function App() {
                     onDeselectAll={handleDeselectAll}
                   />
 
-                  <ScrollArea className="h-[600px]">
-                    <div className="p-4 space-y-4">
+                  <ScrollArea className="h-[500px] sm:h-[600px]">
+                    <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
                       {filteredResults.length === 0 ? (
                         <div className="text-center py-12 text-muted-foreground">
-                          <WarningCircle size={48} className="mx-auto mb-3 opacity-50" />
-                          <p>No results match the current filters</p>
+                          <WarningCircle size={40} className="sm:w-12 sm:h-12 mx-auto mb-3 opacity-50" />
+                          <p className="text-sm sm:text-base">No results match the current filters</p>
                         </div>
                       ) : (
                         filteredResults.map((result) => (
