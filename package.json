@@ -105,5 +105,16 @@
         "packages": [
             "packages/*"
         ]
+    },
+    "overrides": {
+        "@github/spark": {
+            "react": "$react",
+            "react-dom": "$react-dom"
+        }
+    },
+    "peerDependenciesMeta": {
+        "@github/spark": {
+            "optional": true
+        }
     }
 }
