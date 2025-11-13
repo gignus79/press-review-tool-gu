@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button'
+import { Button } from '@/src/components/ui/button'
 import { CalendarBlank } from '@phosphor-icons/react'
 
 export type DateRangePreset = '1month' | '3months' | '1year' | 'all'
