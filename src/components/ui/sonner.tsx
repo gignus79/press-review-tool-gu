@@ -1,9 +1,11 @@
-import { useTheme } from "next-themes"
+"use client"
+
+import { useTheme } from "@/src/hooks/use-theme"
 import { CSSProperties } from "react"
 import { Toaster as Sonner, ToasterProps } from "sonner"
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme()
+  const { theme } = useTheme()
 
   return (
     <Sonner

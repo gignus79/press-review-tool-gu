@@ -29,6 +29,7 @@ import { MetricDisplay } from '@/src/components/MetricDisplay'
 import { SearchToolbar } from '@/src/components/SearchToolbar'
 import { EmptyState } from '@/src/components/EmptyState'
 import { useTheme } from '@/src/hooks/use-theme'
+import { exportResults } from '@/src/lib/utils'
 
 import { performSearch, analyzeResult } from '@/src/lib/mock-data'
 import type { SearchConfig, SearchResult, SearchHistory, Sentiment, ContentType, ExportFormat } from '@/src/lib/types'
@@ -158,36 +159,19 @@ function App() {
     const selectedResults = currentResults.filter(r => selectedIds.has(r.id))
     const exportData = selectedResults.length > 0 ? selectedResults : currentResults
 
-    switch (format) {
-      case 'json':
-        const jsonData = JSON.stringify(exportData, null, 2)
-        downloadFile(jsonData, 'press-review-export.json', 'application/json')
-        toast.success(`Exported ${exportData.length} results as JSON`)
-        break
-      case 'excel':
-        toast.success(`Exported ${exportData.length} results as Excel`, {
-          description: 'Feature simulated in demo'
-        })
-        break
-      case 'pdf':
-        toast.success(`Exported ${exportData.length} results as PDF`, {
-          description: 'Feature simulated in demo'
-        })
-        break
+    try {
+      exportResults(exportData, format, 'press-review-export')
+      toast.success(`Exported ${exportData.length} results as ${format.toUpperCase()}`, {
+        description: `Downloaded ${format === 'excel' ? 'CSV' : format.toUpperCase()} file successfully`
+      })
+    } catch (error) {
+      toast.error(`Export failed`, {
+        description: `Could not export as ${format.toUpperCase()}`
+      })
     }
   }
 
-  const downloadFile = (content: string, filename: string, mimeType: string) => {
-    const blob = new Blob([content], { type: mimeType })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = filename
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    URL.revokeObjectURL(url)
-  }
+
 
   const loadHistorySearch = (history: SearchHistory) => {
     if (history.results) {
@@ -413,6 +397,23 @@ function App() {
         onOpenChange={setSearchDialogOpen}
         onSearch={handleSearch}
       />
+
+      <footer className="bg-card border-t border-border mt-16">
+        <div className="container mx-auto px-4 sm:px-6 py-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-md bg-primary text-primary-foreground">
+                <Newspaper size={16} weight="fill" />
+              </div>
+              <span className="text-sm font-medium">Press Review Tool</span>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              Made with ❤️ by{' '}
+              <span className="font-medium text-foreground">MediaMatter - Giorgio Lovecchio</span>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }

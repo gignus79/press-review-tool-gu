@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 // Temporarily disabled due to network restrictions in build environment
 // import { Plus_Jakarta_Sans } from 'next/font/google'
 import '@/src/index.css'
-import { Toaster } from '@/src/components/ui/sonner'
+import { ToasterProvider } from '@/src/components/toaster-provider'
 
 // const plusJakartaSans = Plus_Jakarta_Sans({ 
 //   subsets: ['latin'],
@@ -25,7 +25,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className="font-sans">
         {children}
-        <Toaster position="top-right" />
+        <ToasterProvider />
       </body>
     </html>
   )

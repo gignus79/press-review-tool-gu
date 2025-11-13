@@ -1,4 +1,8 @@
 {
   "templateVersion": 1,
-  "dbType": "kv"
+  "dbType": "supabase",
+  "framework": "nextjs",
+  "runtime": "nodejs",
+  "frontend": "react",
+  "styling": "tailwindcss"
 }
