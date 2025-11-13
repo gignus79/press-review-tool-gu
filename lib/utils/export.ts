@@ -12,7 +12,7 @@ export function exportResults(
     case 'json':
       exportJSON(results, filename)
       break
-    case 'csv':
+    case 'excel':
       exportCSV(results, filename)
       break
     case 'pdf':

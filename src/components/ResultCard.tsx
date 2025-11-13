@@ -4,8 +4,8 @@ import { Checkbox } from '@/src/components/ui/checkbox'
 import { Button } from '@/src/components/ui/button'
 import { Progress } from '@/src/components/ui/progress'
 import { Sparkle, Copy, ArrowSquareOut } from '@phosphor-icons/react'
-import type { SearchResult } from '@/lib/types'
-import { cn } from '@/lib/utils'
+import type { SearchResult } from '@/src/lib/types'
+import { cn } from '@/src/lib/utils'
 
 interface ResultCardProps {
   result: SearchResult

@@ -30,8 +30,8 @@ import { SearchToolbar } from '@/src/components/SearchToolbar'
 import { EmptyState } from '@/src/components/EmptyState'
 import { useTheme } from '@/src/hooks/use-theme'
 
-import { performSearch, analyzeResult } from '@/lib/mock-data'
-import type { SearchConfig, SearchResult, SearchHistory, Sentiment, ContentType, ExportFormat } from '@/lib/types'
+import { performSearch, analyzeResult } from '@/src/lib/mock-data'
+import type { SearchConfig, SearchResult, SearchHistory, Sentiment, ContentType, ExportFormat } from '@/src/lib/types'
 
 function App() {
   const [userEmail, setUserEmail] = useKV<string | null>('user-email', null)

@@ -8,7 +8,7 @@ import { Checkbox } from '@/src/components/ui/checkbox'
 import { Separator } from '@/src/components/ui/separator'
 import { MagnifyingGlass } from '@phosphor-icons/react'
 import { DateRangeFilters, getDateRangeFromPreset, type DateRangePreset } from '@/src/components/DateRangeFilters'
-import type { SearchConfig, ContentType } from '@/lib/types'
+import type { SearchConfig, ContentType } from '@/src/lib/types'
 
 interface SearchDialogProps {
   open: boolean
