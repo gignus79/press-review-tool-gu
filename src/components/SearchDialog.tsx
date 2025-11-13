@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Separator } from '@/components/ui/separator'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/src/components/ui/dialog'
+import { Button } from '@/src/components/ui/button'
+import { Input } from '@/src/components/ui/input'
+import { Label } from '@/src/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/src/components/ui/select'
+import { Checkbox } from '@/src/components/ui/checkbox'
+import { Separator } from '@/src/components/ui/separator'
 import { MagnifyingGlass } from '@phosphor-icons/react'
-import { DateRangeFilters, getDateRangeFromPreset, type DateRangePreset } from '@/components/DateRangeFilters'
-import type { SearchConfig, ContentType } from '@/lib/types'
+import { DateRangeFilters, getDateRangeFromPreset, type DateRangePreset } from '@/src/components/DateRangeFilters'
+import type { SearchConfig, ContentType } from '@/src/lib/types'
 
 interface SearchDialogProps {
   open: boolean

@@ -1,6 +1,6 @@
-import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
+import { Button } from '@/src/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/src/components/ui/select'
+import { Badge } from '@/src/components/ui/badge'
 import { 
   FunnelSimple, 
   DownloadSimple, 
@@ -9,7 +9,7 @@ import {
   FileXls,
   FileCode
 } from '@phosphor-icons/react'
-import type { Sentiment, ContentType, ExportFormat } from '@/lib/types'
+import type { Sentiment, ContentType, ExportFormat } from '@/src/lib/types'
 
 interface SearchToolbarProps {
   totalResults: number

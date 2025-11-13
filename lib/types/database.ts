@@ -43,7 +43,7 @@ export interface SearchHistory {
   shareToken?: string
 }
 
-export type ExportFormat = 'pdf' | 'csv' | 'json'
+export type ExportFormat = 'pdf' | 'excel' | 'json'
 
 export interface ExportOptions {
   format: ExportFormat

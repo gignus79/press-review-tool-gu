@@ -1,11 +1,11 @@
-import { Card } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Button } from '@/components/ui/button'
-import { Progress } from '@/components/ui/progress'
+import { Card } from '@/src/components/ui/card'
+import { Badge } from '@/src/components/ui/badge'
+import { Checkbox } from '@/src/components/ui/checkbox'
+import { Button } from '@/src/components/ui/button'
+import { Progress } from '@/src/components/ui/progress'
 import { Sparkle, Copy, ArrowSquareOut } from '@phosphor-icons/react'
-import type { SearchResult } from '@/lib/types'
-import { cn } from '@/lib/utils'
+import type { SearchResult } from '@/src/lib/types'
+import { cn } from '@/src/lib/utils'
 
 interface ResultCardProps {
   result: SearchResult
