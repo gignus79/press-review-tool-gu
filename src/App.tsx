@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useKV } from '@github/spark/hooks'
+import { useKV } from '@/src/hooks/use-kv'
 import { Toaster } from '@/src/components/ui/sonner'
 import { Button } from '@/src/components/ui/button'
 import { Progress } from '@/src/components/ui/progress'
