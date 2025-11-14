@@ -26,10 +26,16 @@ export async function POST(request: NextRequest) {
     const config: SearchConfig = await request.json()
 
     const apiKey = process.env.BING_API_KEY
-    const endpoint = process.env.BING_ENDPOINT || 'https://api.bing.microsoft.com/v7.0/search'
+    let endpoint = process.env.BING_ENDPOINT || 'https://api.bing.microsoft.com'
     
     if (!apiKey) {
       return NextResponse.json({ error: 'Bing API key not configured' }, { status: 500 })
+    }
+    
+    // Ensure endpoint has the correct path for v7 API
+    if (!endpoint.includes('/v7.0/search')) {
+      endpoint = endpoint.replace(/\/$/, '') // Remove trailing slash
+      endpoint = `${endpoint}/v7.0/search`
     }
     
     // Build query with music-related terms
