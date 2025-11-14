@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -11,7 +11,7 @@ import { toast } from 'sonner'
 import { ConfigError } from '@/src/components/ConfigError'
 import { isSupabaseConfigured } from '@/lib/env'
 
-export default function VerifyPage() {
+function VerifyContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'expired'>('loading')
@@ -220,6 +220,33 @@ export default function VerifyPage() {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+export default function VerifyPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20 p-4">
+        <Card className="w-full max-w-md shadow-lg border-2">
+          <CardHeader className="text-center space-y-4">
+            <div className="mx-auto mb-2 p-4 rounded-2xl bg-primary/10 text-primary w-fit">
+              <Envelope size={40} weight="fill" className="animate-pulse" />
+            </div>
+            <CardTitle className="text-3xl font-bold tracking-tight">Verifying Email</CardTitle>
+            <CardDescription className="text-base">
+              Please wait while we verify your email address...
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    }>
+      <VerifyContent />
+    </Suspense>
   )
 }
 
