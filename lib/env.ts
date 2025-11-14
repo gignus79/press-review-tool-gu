@@ -25,6 +25,11 @@ export function validateEnv() {
 export function getSupabaseUrl(): string {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   if (!url) {
+    // During build, return empty string to allow build to complete
+    // Runtime errors will be caught by the client/server code
+    if (process.env.NODE_ENV === 'production' && typeof window === 'undefined') {
+      return ''
+    }
     throw new Error('NEXT_PUBLIC_SUPABASE_URL is not set')
   }
   return url
@@ -36,6 +41,11 @@ export function getSupabaseUrl(): string {
 export function getSupabaseAnonKey(): string {
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   if (!key) {
+    // During build, return empty string to allow build to complete
+    // Runtime errors will be caught by the client/server code
+    if (process.env.NODE_ENV === 'production' && typeof window === 'undefined') {
+      return ''
+    }
     throw new Error('NEXT_PUBLIC_SUPABASE_ANON_KEY is not set')
   }
   return key

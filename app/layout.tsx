@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 // Temporarily disabled due to network restrictions in build environment
 // import { Plus_Jakarta_Sans } from 'next/font/google'
-import '@/src/index.css'
+import '@/src/main.css'
 import { ToasterProvider } from '@/src/components/toaster-provider'
 
 // const plusJakartaSans = Plus_Jakarta_Sans({ 

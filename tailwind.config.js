@@ -1,16 +1,18 @@
-import fs from "fs";
-
 /** @type {import('tailwindcss').Config} */
 
 let theme = {};
 try {
-  const themePath = "./theme.json";
-
-  if (fs.existsSync(themePath)) {
-    theme = JSON.parse(fs.readFileSync(themePath, "utf-8"));
+  // Only try to load theme.json if we're in a Node.js environment
+  if (typeof require !== 'undefined') {
+    const fs = require("fs");
+    const themePath = "./theme.json";
+    if (fs.existsSync(themePath)) {
+      theme = JSON.parse(fs.readFileSync(themePath, "utf-8"));
+    }
   }
 } catch (err) {
-  console.error('failed to parse custom styles', err)
+  // Silently fail if theme.json doesn't exist or can't be read
+  // This is expected in some build environments
 }
 const defaultTheme = {
   container: {
@@ -178,7 +180,7 @@ const defaultTheme = {
   darkMode: ["selector", '[data-appearance="dark"]'],
 }
 
-export default {
+module.exports = {
   content: [
     "./index.html",
     "./app/**/*.{js,ts,jsx,tsx}",
