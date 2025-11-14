@@ -1,7 +1,7 @@
 'use client'
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/src/components/ui/card'
-import { AlertCircle } from '@phosphor-icons/react'
+import { WarningCircle } from '@phosphor-icons/react'
 
 export function ConfigError() {
   return (
@@ -9,7 +9,7 @@ export function ConfigError() {
       <Card className="w-full max-w-md border-destructive">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4 p-3 rounded-lg bg-destructive/10 text-destructive w-fit">
-            <AlertCircle size={32} weight="fill" />
+            <WarningCircle size={32} weight="fill" />
           </div>
           <CardTitle className="text-xl font-bold text-destructive">Configuration Error</CardTitle>
           <CardDescription>
