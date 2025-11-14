@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -10,18 +10,59 @@ import { Label } from '@/src/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/src/components/ui/card'
 import { Newspaper } from '@phosphor-icons/react'
 import { toast } from 'sonner'
+import { ConfigError } from '@/src/components/ConfigError'
+import { isSupabaseConfigured } from '@/lib/env'
 
 export default function SignupPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [configError, setConfigError] = useState(false)
   const router = useRouter()
+  
+  useEffect(() => {
+    // Check if Supabase is configured
+    if (!isSupabaseConfigured()) {
+      setConfigError(true)
+      return
+    }
+    
+    try {
+      createClient()
+    } catch (error) {
+      console.error('Failed to initialize Supabase client:', error)
+      setConfigError(true)
+    }
+  }, [])
+  
+  if (configError) {
+    return <ConfigError />
+  }
+  
   const supabase = createClient()
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    // Basic validation
+    if (!email.trim()) {
+      toast.error('Email is required')
+      return
+    }
+    
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email.trim())) {
+      toast.error('Please enter a valid email address')
+      return
+    }
+    
+    if (!password.trim()) {
+      toast.error('Password is required')
+      return
+    }
+
     if (password !== confirmPassword) {
       toast.error('Passwords do not match')
       return
@@ -36,23 +77,52 @@ export default function SignupPage() {
 
     try {
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: email.trim(),
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/dashboard`,
         },
       })
 
-      if (error) throw error
+      if (error) {
+        // Handle specific Supabase errors
+        let errorMessage = 'Signup failed. Please try again.'
+        
+        if (error.message.includes('User already registered')) {
+          errorMessage = 'This email is already registered. Please sign in instead.'
+        } else if (error.message.includes('Password')) {
+          errorMessage = 'Password does not meet requirements. Please use a stronger password.'
+        } else if (error.message.includes('Email')) {
+          errorMessage = 'Invalid email address. Please check and try again.'
+        } else {
+          errorMessage = error.message || errorMessage
+        }
+        
+        throw new Error(errorMessage)
+      }
+
+      if (!data.user) {
+        throw new Error('Signup failed. No user data received.')
+      }
 
       toast.success('Account created!', {
-        description: 'Please check your email to verify your account'
+        description: data.session 
+          ? 'Redirecting to dashboard...' 
+          : 'Please check your email to verify your account'
       })
       
-      // Automatically sign in after signup
-      router.push('/dashboard')
-      router.refresh()
+      // If session exists, user is automatically signed in
+      if (data.session) {
+        await new Promise(resolve => setTimeout(resolve, 500))
+        router.push('/dashboard')
+        router.refresh()
+      } else {
+        // User needs to verify email
+        await new Promise(resolve => setTimeout(resolve, 1500))
+        router.push('/login')
+      }
     } catch (error: any) {
+      console.error('Signup error:', error)
       toast.error('Signup failed', {
         description: error.message || 'Please try again'
       })

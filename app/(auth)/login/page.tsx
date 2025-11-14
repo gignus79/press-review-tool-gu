@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -10,32 +10,93 @@ import { Label } from '@/src/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/src/components/ui/card'
 import { Newspaper } from '@phosphor-icons/react'
 import { toast } from 'sonner'
+import { ConfigError } from '@/src/components/ConfigError'
+import { isSupabaseConfigured } from '@/lib/env'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [configError, setConfigError] = useState(false)
   const router = useRouter()
+  
+  useEffect(() => {
+    // Check if Supabase is configured
+    if (!isSupabaseConfigured()) {
+      setConfigError(true)
+      return
+    }
+    
+    try {
+      createClient()
+    } catch (error) {
+      console.error('Failed to initialize Supabase client:', error)
+      setConfigError(true)
+    }
+  }, [])
+  
+  if (configError) {
+    return <ConfigError />
+  }
+  
   const supabase = createClient()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Basic validation
+    if (!email.trim()) {
+      toast.error('Email is required')
+      return
+    }
+    
+    if (!password.trim()) {
+      toast.error('Password is required')
+      return
+    }
+
     setLoading(true)
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.trim(),
         password,
       })
 
-      if (error) throw error
+      if (error) {
+        // Handle specific Supabase errors
+        let errorMessage = 'Login failed. Please check your credentials.'
+        
+        if (error.message.includes('Invalid login credentials')) {
+          errorMessage = 'Invalid email or password. Please try again.'
+        } else if (error.message.includes('Email not confirmed')) {
+          errorMessage = 'Please verify your email address before signing in.'
+        } else if (error.message.includes('Too many requests')) {
+          errorMessage = 'Too many login attempts. Please try again later.'
+        } else {
+          errorMessage = error.message || errorMessage
+        }
+        
+        throw new Error(errorMessage)
+      }
 
-      toast.success('Login successful!')
+      if (!data.user) {
+        throw new Error('Login failed. No user data received.')
+      }
+
+      toast.success('Login successful!', {
+        description: 'Redirecting to dashboard...'
+      })
+      
+      // Small delay to show success message
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
       router.push('/dashboard')
       router.refresh()
     } catch (error: any) {
+      console.error('Login error:', error)
       toast.error('Login failed', {
-        description: error.message || 'Please check your credentials'
+        description: error.message || 'Please check your credentials and try again.'
       })
     } finally {
       setLoading(false)
