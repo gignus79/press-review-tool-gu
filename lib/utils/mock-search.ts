@@ -6,7 +6,7 @@ export async function performSearch(
 ): Promise<SearchResult[]> {
   // Try real API first, fallback to mock
   try {
-    if (process.env.NEXT_PUBLIC_NEWS_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_NEWS_API_KEY) {
+    if (process.env.BING_API_KEY || process.env.NEXT_PUBLIC_NEWS_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_NEWS_API_KEY) {
       const results = await performRealSearch(config)
       if (results.length > 0) {
         return results

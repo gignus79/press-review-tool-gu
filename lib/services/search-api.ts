@@ -11,27 +11,71 @@ interface NewsAPIResponse {
   }>
 }
 
+interface BingSearchResponse {
+  webPages: {
+    value: Array<{
+      name: string
+      url: string
+      snippet: string
+      datePublished?: string
+      displayUrl: string
+    }>
+  }
+}
+
 export async function performRealSearch(
   config: SearchConfig
 ): Promise<SearchResult[]> {
   try {
-    // Option 1: NewsAPI.org (free tier available)
+    // Option 1: Bing Search API (preferred) - uses server-side API route
+    // Check if we're on client side - if so, Bing will be called via API route
+    if (typeof window !== 'undefined' || process.env.BING_API_KEY) {
+      try {
+        const results = await searchBing(config)
+        if (results.length > 0) {
+          return results
+        }
+      } catch (error) {
+        console.warn('Bing search failed, trying other APIs:', error)
+      }
+    }
+    
+    // Option 2: NewsAPI.org (free tier available)
     if (process.env.NEXT_PUBLIC_NEWS_API_KEY) {
       return await searchNewsAPI(config)
     }
     
-    // Option 2: Google News API (requires API key)
+    // Option 3: Google News API (requires API key)
     if (process.env.NEXT_PUBLIC_GOOGLE_NEWS_API_KEY) {
       return await searchGoogleNews(config)
     }
     
-    // Option 3: RSS feeds from music publications (fallback)
+    // Option 4: RSS feeds from music publications (fallback)
     return await searchRSSFeeds(config)
     
   } catch (error) {
     console.error('Search API error:', error)
     throw new Error('Failed to perform search. Please try again.')
   }
+}
+
+async function searchBing(config: SearchConfig): Promise<SearchResult[]> {
+  // Bing API key is server-side only, so we need to call our API route
+  const response = await fetch('/api/search/bing', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(config),
+  })
+  
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Bing API error' }))
+    throw new Error(error.error || `Bing API error: ${response.status}`)
+  }
+  
+  const data = await response.json()
+  return data.results || []
 }
 
 async function searchNewsAPI(config: SearchConfig): Promise<SearchResult[]> {
