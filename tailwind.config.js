@@ -88,7 +88,7 @@ const defaultTheme = {
         a12: "var(--color-neutral-a12)",
         contrast: "var(--color-neutral-contrast)",
       },
-      accent: {
+      "accent-custom": {
         1: "var(--color-accent-1)",
         2: "var(--color-accent-2)",
         3: "var(--color-accent-3)",
