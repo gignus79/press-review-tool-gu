@@ -39,12 +39,14 @@
     "strict": false
   },
   "include": [
+    "src",
     "app",
     "lib",
     "next-env.d.ts",
     ".next/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "src/App.tsx"
   ]
 }
