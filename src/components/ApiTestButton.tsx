@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { Button } from '@/src/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/src/components/ui/dialog'
 import { Badge } from '@/src/components/ui/badge'
-import { CheckCircle, XCircle, Loader, AlertCircle } from '@phosphor-icons/react'
+import { CheckCircle, XCircle, CircleNotch, WarningCircle } from '@phosphor-icons/react'
 
 interface ApiTestResult {
   name: string
@@ -51,9 +51,9 @@ export function ApiTestButton() {
       case 'error':
         return <XCircle size={16} className="text-destructive" weight="fill" />
       case 'skipped':
-        return <AlertCircle size={16} className="text-muted-foreground" weight="fill" />
+        return <WarningCircle size={16} className="text-muted-foreground" weight="fill" />
       default:
-        return <Loader size={16} className="animate-spin text-primary" />
+        return <CircleNotch size={16} className="animate-spin text-primary" />
     }
   }
 
@@ -92,7 +92,7 @@ export function ApiTestButton() {
         <div className="space-y-4 mt-4">
           {loading && (
             <div className="flex items-center justify-center py-8">
-              <Loader size={24} className="animate-spin text-primary" />
+              <CircleNotch size={24} className="animate-spin text-primary" />
               <span className="ml-2">Testing APIs...</span>
             </div>
           )}
@@ -153,7 +153,7 @@ export function ApiTestButton() {
             <Button onClick={testApis} disabled={loading}>
               {loading ? (
                 <>
-                  <Loader size={16} className="animate-spin mr-2" />
+                  <CircleNotch size={16} className="animate-spin mr-2" />
                   Testing...
                 </>
               ) : (
