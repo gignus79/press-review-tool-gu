@@ -32,7 +32,7 @@ import { MetricDisplay } from '@/src/components/MetricDisplay'
 import { SearchToolbar } from '@/src/components/SearchToolbar'
 import { EmptyState } from '@/src/components/EmptyState'
 import { useTheme } from '@/src/hooks/use-theme'
-
+import { ApiTestButton } from '@/src/components/ApiTestButton'
 import { performSearch, analyzeResult } from '@/lib/utils/mock-search'
 import { exportResults } from '@/lib/utils/export'
 import type { SearchConfig, SearchResult, SearchHistory, Sentiment, ContentType, ExportFormat } from '@/lib/types/database'
