@@ -32,7 +32,7 @@ import { useTheme } from '@/src/hooks/use-theme'
 import { exportResults } from '@/src/lib/utils'
 
 import { performSearch, analyzeResult } from '@/src/lib/mock-data'
-import type { SearchConfig, SearchResult, SearchHistory, Sentiment, ContentType, ExportFormat } from '@/src/lib/types'
+import type { SearchConfig, SearchResult, SearchHistory, Sentiment, ContentType, ExportFormat } from '@/lib/types/database'
 
 function App() {
   const [userEmail, setUserEmail] = useKV<string | null>('user-email', null)

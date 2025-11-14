@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/src/components/ui/button'
 import { Progress } from '@/src/components/ui/progress'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/src/components/ui/sheet'
 import { ScrollArea } from '@/src/components/ui/scroll-area'
+import { Badge } from '@/src/components/ui/badge'
 import { toast } from 'sonner'
 import { 
   MagnifyingGlass, 
@@ -19,8 +20,11 @@ import {
   Moon,
   Sun,
   SignOut,
-  Sparkle
+  Sparkle,
+  ShareNetwork,
+  Trash
 } from '@phosphor-icons/react'
+import type { User } from '@supabase/supabase-js'
 
 import { SearchDialog } from '@/src/components/SearchDialog'
 import { ResultCard } from '@/src/components/ResultCard'
@@ -38,7 +42,7 @@ export default function DashboardPage() {
   const supabase = createClient()
   const { theme, toggleTheme } = useTheme()
   
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [searchDialogOpen, setSearchDialogOpen] = useState(false)
   const [currentResults, setCurrentResults] = useState<SearchResult[]>([])
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -46,42 +50,86 @@ export default function DashboardPage() {
   const [analyzingProgress, setAnalyzingProgress] = useState(0)
   const [searchHistory, setSearchHistory] = useState<SearchHistory[]>([])
   const [currentConfig, setCurrentConfig] = useState<SearchConfig | null>(null)
+  const [usageLimits, setUsageLimits] = useState<{
+    searches: number
+    maxSearches: number
+    exports: number
+    maxExports: number
+  } | null>(null)
   
   const [sentimentFilter, setSentimentFilter] = useState<Sentiment | 'all'>('all')
   const [contentTypeFilter, setContentTypeFilter] = useState<ContentType | 'all'>('all')
 
   useEffect(() => {
     const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
+      try {
+        const { data: { user }, error } = await supabase.auth.getUser()
+        if (error) throw error
+        
+        if (!user) {
+          router.push('/login')
+        } else {
+          setUser(user)
+          loadSearchHistory(user.id)
+          loadUsageLimits(user.id)
+        }
+      } catch (error) {
+        console.error('Failed to check user:', error)
         router.push('/login')
-      } else {
-        setUser(user)
-        loadSearchHistory(user.id)
       }
     }
     checkUser()
   }, [supabase, router])
 
-  const loadSearchHistory = async (userId: string) => {
-    const { data, error } = await supabase
-      .from('search_history')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(20)
+  const loadUsageLimits = async (userId: string) => {
+    try {
+      const response = await fetch('/api/usage')
+      if (!response.ok) throw new Error('Failed to fetch usage limits')
+      
+      const { limits } = await response.json()
+      if (limits) {
+        setUsageLimits({
+          searches: limits.searches_this_month,
+          maxSearches: limits.max_searches,
+          exports: limits.exports_this_month,
+          maxExports: limits.max_exports
+        })
+      }
+    } catch (error) {
+      console.error('Failed to load usage limits:', error)
+    }
+  }
 
-    if (!error && data) {
-      setSearchHistory(data.map(item => ({
-        id: item.id,
-        user_id: item.user_id,
-        timestamp: item.created_at,
-        config: item.config,
-        resultCount: item.result_count,
-        results: item.results,
-        shared: item.shared,
-        shareToken: item.share_token
-      })))
+  const loadSearchHistory = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('search_history')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(20)
+
+      if (error) {
+        console.error('Failed to load search history:', error)
+        toast.error('Failed to load search history')
+        return
+      }
+
+      if (data) {
+        setSearchHistory(data.map(item => ({
+          id: item.id,
+          user_id: item.user_id,
+          timestamp: item.created_at,
+          config: item.config,
+          resultCount: item.result_count,
+          results: item.results,
+          shared: item.shared,
+          shareToken: item.share_token
+        })))
+      }
+    } catch (error) {
+      console.error('Error loading search history:', error)
+      toast.error('Failed to load search history')
     }
   }
 
@@ -96,6 +144,11 @@ export default function DashboardPage() {
   })
 
   const handleSearch = async (config: SearchConfig) => {
+    if (!user) {
+      toast.error('Please log in to perform searches')
+      return
+    }
+
     setIsSearching(true)
     setCurrentConfig(config)
     setCurrentResults([])
@@ -105,16 +158,25 @@ export default function DashboardPage() {
     setAnalyzingProgress(0)
 
     try {
-      // Check usage limits
-      const { data: limits } = await supabase
+      // Check usage limits with error handling
+      const { data: limits, error: limitsError } = await supabase
         .from('usage_limits')
         .select('*')
         .eq('user_id', user.id)
         .single()
 
+      if (limitsError) {
+        console.error('Failed to fetch usage limits:', limitsError)
+        toast.error('Failed to check usage limits', {
+          description: 'Please try again'
+        })
+        setIsSearching(false)
+        return
+      }
+
       if (limits && limits.searches_this_month >= limits.max_searches) {
         toast.error('Search limit reached', {
-          description: 'You have reached your monthly search limit'
+          description: `You have reached your monthly search limit of ${limits.max_searches}`
         })
         setIsSearching(false)
         return
@@ -128,18 +190,26 @@ export default function DashboardPage() {
         description: 'Starting AI analysis...'
       })
 
-      // Update usage limits
+      // Update usage limits with error handling
       if (limits) {
-        await supabase
+        const { error: updateError } = await supabase
           .from('usage_limits')
           .update({ searches_this_month: limits.searches_this_month + 1 })
           .eq('user_id', user.id)
+
+        if (updateError) {
+          console.error('Failed to update usage limits:', updateError)
+          // Don't block the search, just log the error
+        } else {
+          // Refresh usage limits display
+          loadUsageLimits(user.id)
+        }
       }
 
       analyzeResults(results)
 
-      // Save to history
-      const { data: savedSearch } = await supabase
+      // Save to history with error handling
+      const { data: savedSearch, error: historyError } = await supabase
         .from('search_history')
         .insert({
           user_id: user.id,
@@ -151,12 +221,16 @@ export default function DashboardPage() {
         .select()
         .single()
 
-      if (savedSearch) {
+      if (historyError) {
+        console.error('Failed to save search history:', historyError)
+        toast.warning('Search completed but failed to save to history')
+      } else if (savedSearch) {
         setSearchHistory(prev => [savedSearch, ...prev.slice(0, 19)])
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Search failed:', error)
       toast.error('Search failed', {
-        description: 'Please try again with different parameters'
+        description: error.message || 'Please try again with different parameters'
       })
       setIsSearching(false)
     }
@@ -219,32 +293,62 @@ export default function DashboardPage() {
   }
 
   const handleExport = async (format: ExportFormat) => {
-    // Check usage limits
-    const { data: limits } = await supabase
-      .from('usage_limits')
-      .select('*')
-      .eq('user_id', user.id)
-      .single()
-
-    if (limits && limits.exports_this_month >= limits.max_exports) {
-      toast.error('Export limit reached', {
-        description: 'You have reached your monthly export limit'
-      })
+    if (!user) {
+      toast.error('Please log in to export results')
       return
     }
 
-    const selectedResults = currentResults.filter(r => selectedIds.has(r.id))
-    const exportData = selectedResults.length > 0 ? selectedResults : currentResults
-
-    exportResults(exportData, format)
-    toast.success(`Exported ${exportData.length} results as ${format.toUpperCase()}`)
-
-    // Update usage limits
-    if (limits) {
-      await supabase
+    try {
+      // Check usage limits with error handling
+      const { data: limits, error: limitsError } = await supabase
         .from('usage_limits')
-        .update({ exports_this_month: limits.exports_this_month + 1 })
+        .select('*')
         .eq('user_id', user.id)
+        .single()
+
+      if (limitsError) {
+        console.error('Failed to fetch usage limits:', limitsError)
+        toast.error('Failed to check export limits')
+        return
+      }
+
+      if (limits && limits.exports_this_month >= limits.max_exports) {
+        toast.error('Export limit reached', {
+          description: `You have reached your monthly export limit of ${limits.max_exports}`
+        })
+        return
+      }
+
+      const selectedResults = currentResults.filter(r => selectedIds.has(r.id))
+      const exportData = selectedResults.length > 0 ? selectedResults : currentResults
+
+      if (exportData.length === 0) {
+        toast.error('No results to export')
+        return
+      }
+
+      exportResults(exportData, format)
+      toast.success(`Exported ${exportData.length} results as ${format.toUpperCase()}`)
+
+      // Update usage limits with error handling
+      if (limits) {
+        const { error: updateError } = await supabase
+          .from('usage_limits')
+          .update({ exports_this_month: limits.exports_this_month + 1 })
+          .eq('user_id', user.id)
+
+        if (updateError) {
+          console.error('Failed to update usage limits:', updateError)
+        } else {
+          // Refresh usage limits display
+          loadUsageLimits(user.id)
+        }
+      }
+    } catch (error: any) {
+      console.error('Export failed:', error)
+      toast.error('Export failed', {
+        description: error.message || 'Please try again'
+      })
     }
   }
 
@@ -254,6 +358,66 @@ export default function DashboardPage() {
       setCurrentConfig(history.config)
       setSelectedIds(new Set())
       toast.success('Search loaded from history')
+    }
+  }
+
+  const handleShare = async (searchId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    
+    try {
+      const response = await fetch('/api/share', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ searchId })
+      })
+
+      if (!response.ok) {
+        const { error } = await response.json()
+        throw new Error(error || 'Failed to create share link')
+      }
+
+      const { shareUrl } = await response.json()
+      
+      // Copy to clipboard
+      await navigator.clipboard.writeText(shareUrl)
+      toast.success('Share link copied to clipboard!', {
+        description: 'Anyone with this link can view the search results'
+      })
+
+      // Refresh history to show share status
+      if (user) {
+        loadSearchHistory(user.id)
+      }
+    } catch (error: any) {
+      console.error('Failed to create share link:', error)
+      toast.error('Failed to create share link', {
+        description: error.message || 'Please try again'
+      })
+    }
+  }
+
+  const handleDeleteHistory = async (searchId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    
+    if (!confirm('Are you sure you want to delete this search?')) return
+
+    try {
+      const response = await fetch(`/api/history?id=${searchId}`, {
+        method: 'DELETE'
+      })
+
+      if (!response.ok) {
+        const { error } = await response.json()
+        throw new Error(error || 'Failed to delete search')
+      }
+
+      setSearchHistory(prev => prev.filter(h => h.id !== searchId))
+      toast.success('Search deleted')
+    } catch (error: any) {
+      console.error('Failed to delete search:', error)
+      toast.error('Failed to delete search', {
+        description: error.message || 'Please try again'
+      })
     }
   }
 
@@ -296,6 +460,16 @@ export default function DashboardPage() {
             </div>
 
             <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+              {usageLimits && (
+                <div className="hidden md:flex items-center gap-3 text-xs text-muted-foreground">
+                  <span className="px-2 py-1 rounded bg-muted">
+                    Searches: {usageLimits.searches}/{usageLimits.maxSearches}
+                  </span>
+                  <span className="px-2 py-1 rounded bg-muted">
+                    Exports: {usageLimits.exports}/{usageLimits.maxExports}
+                  </span>
+                </div>
+              )}
               <Button
                 variant="ghost"
                 size="icon"
@@ -338,16 +512,43 @@ export default function DashboardPage() {
                             className="p-4 border border-border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
                             onClick={() => loadHistorySearch(history)}
                           >
-                            <div className="font-medium mb-1 line-clamp-2">{history.config.query}</div>
-                            <div className="text-sm text-muted-foreground">
+                            <div className="flex items-start justify-between gap-2 mb-2">
+                              <div className="font-medium line-clamp-2 flex-1">{history.config.query}</div>
+                              {history.shared && (
+                                <Badge variant="secondary" className="text-xs flex-shrink-0">
+                                  Shared
+                                </Badge>
+                              )}
+                            </div>
+                            <div className="text-sm text-muted-foreground mb-2">
                               {new Date(history.timestamp).toLocaleDateString()} • {history.resultCount} results
                             </div>
-                            <div className="flex flex-wrap gap-1 mt-2">
+                            <div className="flex flex-wrap gap-1 mb-2">
                               {history.config.contentTypes.map(type => (
                                 <span key={type} className="text-xs px-2 py-1 rounded-full bg-muted capitalize">
                                   {type}
                                 </span>
                               ))}
+                            </div>
+                            <div className="flex items-center gap-2 mt-2" onClick={(e) => e.stopPropagation()}>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 text-xs"
+                                onClick={(e) => handleShare(history.id, e)}
+                              >
+                                <ShareNetwork size={14} className="mr-1" />
+                                Share
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 text-xs text-destructive hover:text-destructive"
+                                onClick={(e) => handleDeleteHistory(history.id, e)}
+                              >
+                                <Trash size={14} className="mr-1" />
+                                Delete
+                              </Button>
                             </div>
                           </div>
                         ))}

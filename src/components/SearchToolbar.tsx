@@ -9,7 +9,7 @@ import {
   FileXls,
   FileCode
 } from '@phosphor-icons/react'
-import type { Sentiment, ContentType, ExportFormat } from '@/src/lib/types'
+import type { Sentiment, ContentType, ExportFormat } from '@/lib/types/database'
 
 interface SearchToolbarProps {
   totalResults: number

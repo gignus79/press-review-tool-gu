@@ -8,7 +8,9 @@ import { Checkbox } from '@/src/components/ui/checkbox'
 import { Separator } from '@/src/components/ui/separator'
 import { MagnifyingGlass } from '@phosphor-icons/react'
 import { DateRangeFilters, getDateRangeFromPreset, type DateRangePreset } from '@/src/components/DateRangeFilters'
-import type { SearchConfig, ContentType } from '@/src/lib/types'
+import type { SearchConfig, ContentType } from '@/lib/types/database'
+import { searchConfigSchema } from '@/lib/validations/search'
+import { toast } from 'sonner'
 
 interface SearchDialogProps {
   open: boolean
@@ -61,7 +63,10 @@ export function SearchDialog({ open, onOpenChange, onSearch }: SearchDialogProps
   }
 
   const handleSubmit = () => {
-    if (!query.trim()) return
+    if (!query.trim()) {
+      toast.error('Query is required')
+      return
+    }
 
     const config: SearchConfig = {
       query: query.trim(),
@@ -71,8 +76,24 @@ export function SearchDialog({ open, onOpenChange, onSearch }: SearchDialogProps
       maxResults: parseInt(maxResults) || 50
     }
 
-    onSearch(config)
-    onOpenChange(false)
+    try {
+      // Validate with Zod schema
+      const validated = searchConfigSchema.parse(config)
+      onSearch(validated)
+      onOpenChange(false)
+    } catch (error: any) {
+      if (error.errors) {
+        // Zod validation errors
+        const firstError = error.errors[0]
+        toast.error('Validation error', {
+          description: firstError.message || 'Please check your input'
+        })
+      } else {
+        toast.error('Invalid configuration', {
+          description: error.message || 'Please check your input'
+        })
+      }
+    }
   }
 
   return (

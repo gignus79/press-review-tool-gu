@@ -1,12 +1,17 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { getSupabaseUrl, getSupabaseAnonKey } from '../env'
 
 export async function createClient() {
   const cookieStore = await cookies()
 
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  try {
+    const url = getSupabaseUrl()
+    const key = getSupabaseAnonKey()
+    
+    return createServerClient(
+      url,
+      key,
     {
       cookies: {
         get(name: string) {
@@ -32,5 +37,9 @@ export async function createClient() {
         },
       },
     }
-  )
+    )
+  } catch (error) {
+    console.error('Failed to create Supabase server client:', error)
+    throw new Error('Supabase configuration is missing. Please check your environment variables.')
+  }
 }
