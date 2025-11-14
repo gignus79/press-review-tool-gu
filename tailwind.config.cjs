@@ -21,9 +21,10 @@ const defaultTheme = {
   },
   extend: {
     screens: {
-      coarse: { raw: "(pointer: coarse)" },
-      fine: { raw: "(pointer: fine)" },
-      pwa: { raw: "(display-mode: standalone)" },
+      // Custom media queries - commented out to avoid CSS compilation issues
+      // coarse: { raw: "(pointer: coarse)" },
+      // fine: { raw: "(pointer: fine)" },
+      // pwa: { raw: "(display-mode: standalone)" },
     },
     colors: {
       background: "var(--background)",

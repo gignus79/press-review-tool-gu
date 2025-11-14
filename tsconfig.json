@@ -39,7 +39,6 @@
     "strict": false
   },
   "include": [
-    "src",
     "app",
     "lib",
     "next-env.d.ts",

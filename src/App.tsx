@@ -84,6 +84,7 @@ function App() {
 
       const historyEntry: SearchHistory = {
         id: `search-${Date.now()}`,
+        user_id: 'local-user', // Legacy App.tsx - not used in Next.js
         timestamp: new Date().toISOString(),
         config,
         resultCount: results.length,
