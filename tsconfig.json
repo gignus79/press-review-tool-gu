@@ -47,6 +47,9 @@
   ],
   "exclude": [
     "node_modules",
-    "src/App.tsx"
+    "src/App.tsx",
+    "src/main.tsx",
+    "vite.config.ts",
+    "index.html"
   ]
 }
