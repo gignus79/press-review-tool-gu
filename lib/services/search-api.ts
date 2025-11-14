@@ -61,21 +61,30 @@ export async function performRealSearch(
 
 async function searchBing(config: SearchConfig): Promise<SearchResult[]> {
   // Bing API key is server-side only, so we need to call our API route
-  const response = await fetch('/api/search/bing', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(config),
-  })
+  console.log('🔍 Attempting Bing search for:', config.query)
   
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: 'Bing API error' }))
-    throw new Error(error.error || `Bing API error: ${response.status}`)
+  try {
+    const response = await fetch('/api/search/bing', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(config),
+    })
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Bing API error' }))
+      console.error('❌ Bing API error:', errorData)
+      throw new Error(errorData.error || `Bing API error: ${response.status}`)
+    }
+    
+    const data = await response.json()
+    console.log('✅ Bing search successful, results:', data.results?.length || 0)
+    return data.results || []
+  } catch (error: any) {
+    console.error('❌ Bing search failed:', error)
+    throw error
   }
-  
-  const data = await response.json()
-  return data.results || []
 }
 
 async function searchNewsAPI(config: SearchConfig): Promise<SearchResult[]> {

@@ -182,13 +182,22 @@ export default function DashboardPage() {
         return
       }
 
+      console.log('🔍 Starting search with config:', config)
       const results = await performSearch(config)
+      console.log('✅ Search completed, results:', results.length)
+      
+      if (results.length === 0) {
+        toast.warning('No results found', {
+          description: 'Try adjusting your search parameters or check API configuration'
+        })
+      } else {
+        toast.success(`Found ${results.length} results`, {
+          description: 'Starting AI analysis...'
+        })
+      }
+      
       setCurrentResults(results)
       setIsSearching(false)
-
-      toast.success(`Found ${results.length} results`, {
-        description: 'Starting AI analysis...'
-      })
 
       // Update usage limits with error handling
       if (limits) {
@@ -470,6 +479,7 @@ export default function DashboardPage() {
                   </span>
                 </div>
               )}
+              <ApiTestButton />
               <Button
                 variant="ghost"
                 size="icon"

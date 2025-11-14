@@ -51,6 +51,8 @@ export async function POST(request: NextRequest) {
     
     const url = `${endpoint}?q=${query}&count=${config.maxResults}&responseFilter=WebPages${freshness}`
     
+    console.log('🔍 Bing API request:', { endpoint, query: config.query, url: url.substring(0, 100) + '...' })
+    
     const response = await fetch(url, {
       headers: {
         'Ocp-Apim-Subscription-Key': apiKey,
@@ -58,17 +60,29 @@ export async function POST(request: NextRequest) {
     })
     
     if (!response.ok) {
-      const error = await response.text()
-      console.error('Bing API error:', error)
+      const errorText = await response.text()
+      console.error('❌ Bing API error:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorText.substring(0, 200)
+      })
       return NextResponse.json(
-        { error: `Bing API error: ${response.status}` },
+        { 
+          error: `Bing API error: ${response.status}`,
+          details: errorText.substring(0, 200)
+        },
         { status: response.status }
       )
     }
     
     const data: BingSearchResponse = await response.json()
+    console.log('✅ Bing API response:', {
+      hasWebPages: !!data.webPages,
+      resultCount: data.webPages?.value?.length || 0
+    })
     
-    if (!data.webPages || !data.webPages.value) {
+    if (!data.webPages || !data.webPages.value || data.webPages.value.length === 0) {
+      console.warn('⚠️ Bing API returned no results')
       return NextResponse.json({ results: [] })
     }
     

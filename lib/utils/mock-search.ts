@@ -4,19 +4,35 @@ import { performRealSearch } from '../services/search-api'
 export async function performSearch(
   config: SearchConfig
 ): Promise<SearchResult[]> {
+  console.log('🔍 Starting search with config:', { query: config.query, maxResults: config.maxResults })
+  
   // Try real API first, fallback to mock
   try {
-    if (process.env.BING_API_KEY || process.env.NEXT_PUBLIC_NEWS_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_NEWS_API_KEY) {
+    // Always try real API if we're in browser (will check for API keys on server)
+    // or if we have API keys configured
+    const hasApiKeys = typeof window !== 'undefined' || 
+      process.env.BING_API_KEY || 
+      process.env.NEXT_PUBLIC_NEWS_API_KEY || 
+      process.env.NEXT_PUBLIC_GOOGLE_NEWS_API_KEY
+    
+    if (hasApiKeys) {
+      console.log('🌐 Attempting real API search...')
       const results = await performRealSearch(config)
-      if (results.length > 0) {
+      if (results && results.length > 0) {
+        console.log(`✅ Real API returned ${results.length} results`)
         return results
+      } else {
+        console.warn('⚠️ Real API returned no results, falling back to mock')
       }
+    } else {
+      console.log('ℹ️ No API keys configured, using mock data')
     }
-  } catch (error) {
-    console.warn('Real API failed, using mock data:', error)
+  } catch (error: any) {
+    console.warn('⚠️ Real API failed, using mock data:', error.message || error)
   }
   
   // Fallback to mock data
+  console.log('🎭 Using mock search data')
   return await performMockSearch(config)
 }
 
