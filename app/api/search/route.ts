@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Perform search
-    const results = await performSearch(config.query, config.maxResults)
+    const results = await performSearch(config)
 
     // Update usage limits
     if (limits) {

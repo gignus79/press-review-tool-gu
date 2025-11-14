@@ -182,7 +182,7 @@ export default function DashboardPage() {
         return
       }
 
-      const results = await performSearch(config.query, config.maxResults)
+      const results = await performSearch(config)
       setCurrentResults(results)
       setIsSearching(false)
 
@@ -569,7 +569,12 @@ export default function DashboardPage() {
                 </SheetContent>
               </Sheet>
 
-              <Button onClick={() => setSearchDialogOpen(true)} size="sm" className="gap-2">
+              <Button 
+                variant="glow"
+                onClick={() => setSearchDialogOpen(true)} 
+                size="sm" 
+                className="gap-2"
+              >
                 <MagnifyingGlass size={16} className="sm:w-[18px] sm:h-[18px]" weight="bold" />
                 <span className="hidden sm:inline">New Search</span>
               </Button>

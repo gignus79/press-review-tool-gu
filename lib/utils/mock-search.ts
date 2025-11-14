@@ -1,6 +1,26 @@
-import type { SearchResult, AnalysisResult, ContentType, Sentiment } from '../types/database'
+import type { SearchResult, AnalysisResult, ContentType, Sentiment, SearchConfig } from '../types/database'
+import { performRealSearch } from '../services/search-api'
 
-export async function performSearch(query: string, maxResults: number): Promise<SearchResult[]> {
+export async function performSearch(
+  config: SearchConfig
+): Promise<SearchResult[]> {
+  // Try real API first, fallback to mock
+  try {
+    if (process.env.NEXT_PUBLIC_NEWS_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_NEWS_API_KEY) {
+      const results = await performRealSearch(config)
+      if (results.length > 0) {
+        return results
+      }
+    }
+  } catch (error) {
+    console.warn('Real API failed, using mock data:', error)
+  }
+  
+  // Fallback to mock data
+  return await performMockSearch(config)
+}
+
+async function performMockSearch(config: SearchConfig): Promise<SearchResult[]> {
   // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 1500))
   
@@ -8,7 +28,7 @@ export async function performSearch(query: string, maxResults: number): Promise<
   const contentTypes: ContentType[] = ['article', 'review', 'interview', 'news', 'feature']
   
   const results: SearchResult[] = []
-  const count = Math.min(maxResults, Math.floor(Math.random() * 15) + 10)
+  const count = Math.min(config.maxResults, Math.floor(Math.random() * 15) + 10)
   
   for (let i = 0; i < count; i++) {
     const source = sources[Math.floor(Math.random() * sources.length)]
@@ -19,11 +39,11 @@ export async function performSearch(query: string, maxResults: number): Promise<
     
     results.push({
       id: `result-${Date.now()}-${i}`,
-      title: generateTitle(query, contentType),
+      title: generateTitle(config.query, contentType),
       url: `https://example.com/article-${i}`,
       source,
       publishDate: date.toISOString(),
-      snippet: generateSnippet(query),
+      snippet: generateSnippet(config.query),
       contentType,
       isAnalyzing: false,
       isDuplicate: false

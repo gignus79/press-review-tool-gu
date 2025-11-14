@@ -47,32 +47,71 @@ function exportCSV(results: SearchResult[], filename: string) {
 function exportPDF(results: SearchResult[], filename: string) {
   const doc = new jsPDF()
   
-  // Title
+  // Header
   doc.setFontSize(18)
-  doc.text('Press Review Export', 14, 20)
-  
-  // Date
+  doc.text('Press Review - Search Results', 14, 22)
   doc.setFontSize(10)
-  doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, 28)
-  doc.text(`Total Results: ${results.length}`, 14, 34)
+  doc.setTextColor(100, 100, 100)
+  doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, 30)
   
-  // Table
-  const tableData = results.map(result => [
-    result.title.substring(0, 50) + (result.title.length > 50 ? '...' : ''),
+  // Table data with links
+  const tableData = results.map((result, index) => [
+    index + 1,
+    result.title.length > 50 ? result.title.substring(0, 47) + '...' : result.title,
     result.source,
     new Date(result.publishDate).toLocaleDateString(),
-    result.contentType,
     result.analysis?.sentiment || 'N/A',
-    result.analysis?.relevanceScore?.toString() || 'N/A'
+    result.analysis?.relevanceScore ? `${result.analysis.relevanceScore}%` : 'N/A',
+    'View' // Link column
   ])
-
+  
   autoTable(doc, {
-    head: [['Title', 'Source', 'Date', 'Type', 'Sentiment', 'Score']],
+    head: [['#', 'Title', 'Source', 'Date', 'Sentiment', 'Relevance', 'Link']],
     body: tableData,
-    startY: 40,
-    styles: { fontSize: 8 },
-    headStyles: { fillColor: [79, 70, 229] }, // indigo
+    startY: 35,
+    styles: { 
+      fontSize: 8,
+      cellPadding: 2
+    },
+    headStyles: { 
+      fillColor: [45, 15, 270], // Primary indigo color (approximate RGB)
+      textColor: 255,
+      fontStyle: 'bold'
+    },
+    columnStyles: {
+      6: { cellWidth: 20 } // Link column width
+    }
   })
+  
+  // Add clickable links for each result
+  const finalY = (doc as any).lastAutoTable.finalY || 35
+  let currentY = finalY + 10
+  
+  results.forEach((result, index) => {
+    if (currentY < 280) { // Before page end
+      doc.setTextColor(45, 15, 270) // Primary blue
+      doc.textWithLink('View Article', 180, currentY, { url: result.url })
+      currentY += 7
+    }
+  })
+  
+  // Add summary page if multiple pages
+  if (results.length > 0) {
+    doc.addPage()
+    doc.setFontSize(16)
+    doc.setTextColor(0, 0, 0)
+    doc.text('Summary', 14, 20)
+    
+    const positive = results.filter(r => r.analysis?.sentiment === 'positive').length
+    const negative = results.filter(r => r.analysis?.sentiment === 'negative').length
+    const neutral = results.filter(r => r.analysis?.sentiment === 'neutral').length
+    
+    doc.setFontSize(12)
+    doc.text(`Total Results: ${results.length}`, 14, 35)
+    doc.text(`Positive: ${positive}`, 14, 45)
+    doc.text(`Negative: ${negative}`, 14, 55)
+    doc.text(`Neutral: ${neutral}`, 14, 65)
+  }
   
   doc.save(`${filename}.pdf`)
 }
