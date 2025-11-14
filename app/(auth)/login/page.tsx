@@ -33,6 +33,31 @@ export default function LoginPage() {
       console.error('Failed to initialize Supabase client:', error)
       setConfigError(true)
     }
+
+    // Check for error messages from URL params (e.g., from email verification)
+    const params = new URLSearchParams(window.location.search)
+    const error = params.get('error')
+    const message = params.get('message')
+    const errorCode = params.get('error_code')
+
+    if (error && message) {
+      let errorMessage = decodeURIComponent(message)
+      
+      // Handle specific error codes
+      if (errorCode === 'otp_expired') {
+        errorMessage = 'The email verification link has expired. Please request a new verification email or sign up again.'
+      } else if (errorCode === 'access_denied') {
+        errorMessage = 'Email verification failed. The link may be invalid or expired.'
+      }
+      
+      toast.error('Verification Error', {
+        description: errorMessage,
+        duration: 10000, // Show for 10 seconds
+      })
+
+      // Clean up URL
+      window.history.replaceState({}, '', window.location.pathname)
+    }
   }, [])
   
   if (configError) {

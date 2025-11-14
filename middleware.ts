@@ -12,5 +12,6 @@ export const config = {
      */
     '/api/(.*)',
     '/(auth|dashboard|shared)/(.*)',
+    '/auth/(.*)',
   ],
 }
